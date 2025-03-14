@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VetCareAI - Your Pet Health Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f9ff;
+        }
+        .chat-container {
+            height: calc(100vh - 240px);
+        }
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80% { content: '....'; }
+            100% { content: '.'; }
+        }
+        .chat-bubble {
+            max-width: 80%;
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+        <nav class="bg-white shadow-md">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="bi bi-heart-pulse-fill text-3xl text-blue-600 mr-2"></i>
+                        <h1 class="text-2xl font-bold text-blue-600">VetCareAI</h1>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="container mx-auto px-4 py-8">
+            <div class="max-w-3xl mx-auto">
+                <div class="bg-white rounded-lg shadow-lg p-4">
+                    <div id="chat-messages" class="chat-container overflow-y-auto mb-4">
+                        <div class="chat-bubble bg-blue-100 p-4 rounded-lg mb-4">
+                            <p class="text-gray-800">Hi! I'm VetCareAI, your virtual pet health assistant. I can help you with:</p>
+                            <ul class="list-disc ml-6 mt-2">
+                                <li>Pet symptom checking</li>
+                                <li>Disease information</li>
+                                <li>First-aid guidance</li>
+                                <li>General pet health advice</li>
+                            </ul>
+                            <p class="mt-2 text-gray-800">How can I help you today?</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="user-input" placeholder="Type your pet health concern here..." class="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <button onclick="sendMessage()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="bi bi-send-fill"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        let isProcessing = false;
+
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !isProcessing) {
+                sendMessage();
+            }
+        });
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (message === '' || isProcessing) return;
+
+            isProcessing = true;
+            appendMessage(message, 'user');
+            userInput.value = '';
+            showTypingIndicator();
+
+            try {
+                const response = await fetch('https://r0c8kgwocscg8gsokogwwsw4.zetaverse.one/ai', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer 4uRe7rUgKRdVtI4l0WjLTVPvTVw1',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        messages: [{
+                            role: 'user',
+                            content: [{
+                                type: 'text',
+                                text: `As a veterinary AI assistant, please help with this pet health question: ${message}`
+                            }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                removeTypingIndicator();
+                appendMessage(data.message, 'bot');
+            } catch (error) {
+                removeTypingIndicator();
+                appendMessage('Sorry, I encountered an error. Please try again.', 'bot');
+            }
+
+            isProcessing = false;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function appendMessage(message, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-bubble ${sender === 'user' ? 'ml-auto bg-blue-600 text-white' : 'bg-blue-100 text-gray-800'} p-4 rounded-lg mb-4`;
+            messageDiv.textContent = message;
+            chatMessages.appendChild(messageDiv);
+        }
+
+        function showTypingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.id = 'typing-indicator';
+            indicator.className = 'chat-bubble bg-gray-100 p-4 rounded-lg mb-4';
+            indicator.innerHTML = '<span class="loading-dots">VetCareAI is typing</span>';
+            chatMessages.appendChild(indicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) indicator.remove();
+        }
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
